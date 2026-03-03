@@ -3,8 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "type": "module",
+<<<<<<< HEAD
   "main": "index.js",
+=======
+  "main": "server.js",
+>>>>>>> 2349a7f (Fix package.json and enable ES modules)
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
