@@ -1,26 +1,52 @@
 import express from "express";
 import cors from "cors";
 import OpenAI from "openai";
+import twilio from "twilio";
 
 const app = express();
 
-// Serve static files from the "public" folder (this makes widget.js accessible)
+// Serve static files from the "public" folder
 app.use(express.static("public"));
 
 app.use(cors());
 app.use(express.json());
 
+// OpenAI client
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Twilio client (credentials stored in Render environment variables)
+const twilioClient = twilio(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+);
+
+// Function to send SMS when a lead is captured
+async function sendLeadSMS({ name, city, phone, issue }) {
+  const message = `
+New Hot Tub Lead:
+Name: ${name}
+City: ${city}
+Phone: ${phone}
+Issue: ${issue}
+  `;
+
+  await twilioClient.messages.create({
+    body: message,
+    from: process.env.TWILIO_PHONE_NUMBER,
+    to: process.env.MY_PHONE_NUMBER,
+  });
+}
+
+// SYSTEM PROMPT
 const SYSTEM_PROMPT = `
-You are the lead‑capture and customer‑intake assistant for **Quality Spa Care & Repair**, a hot tub maintenance and repair company based in Heber City, Utah.
+You are the lead‑capture and customer‑intake assistant for Quality Spa Care & Repair, a hot tub maintenance and repair company based in Heber City, Utah.
 
 Your job is to:
 - Greet visitors warmly and conversationally.
 - Understand their hot tub issue or question.
-- Collect their **name**, **phone number**, **and city**.
+- Collect their name, phone number, and city.
 - Keep answers short, friendly, and local‑sounding.
 - Never overwhelm the user with long paragraphs.
 
@@ -30,11 +56,11 @@ BUSINESS INFORMATION (USE THIS TO ANSWER QUESTIONS)
 
 SERVICE AREAS:
 - Weekly maintenance route: Park City, Midway, Heber, Kamas, Sundance, Orem, West Jordan.
-- Repair services: available **anywhere in Utah**.
+- Repair services: available anywhere in Utah.
 
 WEEKLY MAINTENANCE ROUTE:
-- Price: **$140 per month**.
-- Visit frequency: **once per week**.
+- Price: $140 per month.
+- Visit frequency: once per week.
 - Included every week:
   - Water testing and balancing.
   - Photos of water quality and chemical readings.
@@ -45,8 +71,8 @@ WEEKLY MAINTENANCE ROUTE:
 - Included as needed:
   - Add water if the level is low.
 - Route member perks:
-  - **Free drain, clean, and refill services**.
-  - **Discounted repair labor: $50/hr**.
+  - Free drain, clean, and refill services.
+  - Discounted repair labor: $50/hr.
   - Priority scheduling.
 
 REPAIRS:
@@ -101,7 +127,6 @@ If someone gives only part of their info:
 FINAL RULE
 ====================================================
 Always stay focused on helping the user and collecting their name, city, and phone number so a technician can follow up. Keep it friendly, short, and helpful.
-
 `;
 
 app.post("/chat", async (req, res) => {
@@ -117,6 +142,25 @@ app.post("/chat", async (req, res) => {
     });
 
     const reply = response.choices[0].message.content;
+
+    // Extract user message text
+    const userText = messages[messages.length - 1].content.toLowerCase();
+
+    // Simple extraction patterns
+    const nameMatch = userText.match(/my name is ([a-z ]+)/i);
+    const cityMatch = userText.match(/(heber|midway|park city|kamas|sundance|orem|west jordan|salt lake|utah)/i);
+    const phoneMatch = userText.match(/(\d{3}[-.\s]?\d{3}[-.\s]?\d{4})/);
+
+    // If all info is present, send SMS
+    if (nameMatch && cityMatch && phoneMatch) {
+      await sendLeadSMS({
+        name: nameMatch[1],
+        city: cityMatch[1],
+        phone: phoneMatch[1],
+        issue: userText,
+      });
+    }
+
     res.json({ reply });
   } catch (err) {
     console.error(err);
