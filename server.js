@@ -3,7 +3,9 @@ import cors from "cors";
 import OpenAI from "openai";
 
 const app = express();
-app.use(express.static('public'));
+
+// Serve static files from the "public" folder (this makes widget.js accessible)
+app.use(express.static("public"));
 
 app.use(cors());
 app.use(express.json());
@@ -46,8 +48,8 @@ app.post("/chat", async (req, res) => {
   }
 });
 
+// Start server
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Hot tub chat bot listening on port ${PORT}`);
 });
-
