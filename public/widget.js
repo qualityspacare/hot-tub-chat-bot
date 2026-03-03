@@ -22,7 +22,7 @@
 
   // Create the chat window
   const frame = document.createElement("iframe");
-  frame.src = "https://hot-tub-chat-bot.onrender.com";
+  frame.src = "https://hot-tub-chat-bot.onrender.com/chat.html";
   frame.style.position = "fixed";
   frame.style.bottom = "100px";
   frame.style.right = "20px";
