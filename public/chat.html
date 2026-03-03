@@ -11,7 +11,6 @@
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
   }
 
-  // Send on button click
   sendBtn.addEventListener("click", async () => {
     const text = input.value.trim();
     if (!text) return;
@@ -19,7 +18,7 @@
     addMessage(text, "You");
     input.value = "";
 
-    const res = await fetch("/chat", {
+    const res = await fetch("https://hot-tub-chat-bot.onrender.com/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -31,7 +30,6 @@
     addMessage(data.reply, "Bot");
   });
 
-  // Send on Enter key
   input.addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
       sendBtn.click();
