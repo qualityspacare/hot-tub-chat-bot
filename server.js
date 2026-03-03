@@ -4,6 +4,7 @@ import OpenAI from "openai";
 import twilio from "twilio";
 
 const app = express();
+app.use(express.static("."));
 
 // Serve static files from the "public" folder
 app.use(express.static("public"));
