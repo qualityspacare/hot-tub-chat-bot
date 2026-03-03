@@ -69,7 +69,7 @@ sendBtn.onclick = async () => {
   addMessage(text, "You");
   input.value = "";
 
-  const res = await fetch("https://hot-tub-chat-bot.onrender.com/api/chat", {
+  const res = await fetch("https://hot-tub-chat-bot.onrender.com/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
